@@ -8,4 +8,5 @@ module.exports = {
   telegramToken: process.env.TELEGRAM_TOKEN,
   chatId: process.env.CHAT_ID,
   topicId: process.env.TOPIC_ID,
+  configTopicName: process.env.TOPIC_NAME,
 };

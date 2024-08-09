@@ -237,6 +237,7 @@ const closeMarketCron = cron.schedule(
     try {
       const date = moment().format("DD/MM/YYYY");
       const marketOpen = await didMarketOpenToday();
+      console.log(marketOpen)
       if (marketOpen) {
         const delayTime = 1000;
         let array1 = [];

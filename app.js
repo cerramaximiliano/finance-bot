@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const URL_DB = process.env.MONGO_URI;
 const cron = require("node-cron");
 const app = require('./server/server');
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 bot.on("polling_error", console.log);
 mongoose

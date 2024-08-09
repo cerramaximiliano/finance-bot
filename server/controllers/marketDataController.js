@@ -66,8 +66,13 @@ const didMarketOpenToday = async () => {
         $lt: endOfToday,
       },
     });
-    if (record) {
-      return record.marketOpen;
+    const startOfDayUnix = moment().startOf('day').unix();
+    console.log(startOfDayUnix); // Imprime el inicio del día en formato Unix
+    const endOfDayUnix = moment().endOf('day').unix();
+    console.log(endOfDayUnix); // Imprime el fin del día en formato Unix
+    console.log(startOfToday, endOfToday)
+    if (record && startOfDayUnix < record.nextMarketOpen && endOfDayUnix > record.nextMarketClose) {
+      return true;
     } else {
       console.log("No se encontró un registro para el día de hoy");
       return false;

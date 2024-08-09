@@ -6,8 +6,6 @@ const {
   fetchEconomicCalendar,
   fetchEarningCalendar,
   fetchDayWath,
-  fetchStockPrice,
-  fetchMarketCapStocks,
   fetchStockSeekingAlpha,
   fetchMarketCap,
 } = require("../controllers/controllersAPIs");
@@ -32,6 +30,7 @@ const { getClosestDate, readableDate } = require("../utils/dates");
 const {
   findEconomicEventsByDateRange,
 } = require("../controllers/economicEventController");
+const { configTopicName } = require("../config/configAPIs");
 
 const openSymbols = [
   { description: "Futuros Bonos US 10 años", symbol: "ZN=F" },
@@ -137,7 +136,7 @@ bot.onText(/\/informes/, (msg) => {
   const topicId = msg.is_topic_message ? msg.message_thread_id : undefined;
   if (topicId) {
     const topicName = msg.reply_to_message.forum_topic_created.name;
-    if (topicName === "Informes") {
+    if (topicName === configTopicName) {
       bot
         .sendMessage(chatId, "Menú Principal:", {
           reply_markup: {
@@ -167,44 +166,6 @@ bot.onText(/\/informes/, (msg) => {
   }
 });
 
-bot.onText(/\/config_hours (.+)/, (msg, match) => {
-  const chatId = msg.chat.id;
-  const topicId = msg.is_topic_message ? msg.message_thread_id : undefined;
-  const hoursInput = match[1];
-
-  console.log("Comando /config_hours recibido:", hoursInput); // Línea para depuración
-
-  // Verificar si el formato es correcto "hh,mm"
-  const timeFormat = /^\d{2},\d{2}$/;
-  if (timeFormat.test(hoursInput)) {
-    bot
-      .sendMessage(
-        chatId,
-        "Formato correcto. Horas configuradas exitosamente.",
-        {
-          ...(topicId && { message_thread_id: topicId }),
-        }
-      )
-      .catch((error) => {
-        console.error(
-          `Error al enviar mensaje de confirmación: ${error.message}`
-        );
-      });
-  } else {
-    bot
-      .sendMessage(
-        chatId,
-        "Formato incorrecto. Por favor, usa el formato 'hh,mm'.",
-        {
-          ...(topicId && { message_thread_id: topicId }),
-        }
-      )
-      .catch((error) => {
-        console.error(`Error al enviar mensaje de error: ${error.message}`);
-      });
-  }
-});
-
 bot.on("callback_query", async (callbackQuery) => {
   const message = callbackQuery.message;
   const data = callbackQuery.data;
@@ -214,7 +175,7 @@ bot.on("callback_query", async (callbackQuery) => {
 
   if (topicId) {
     const topicName = message.reply_to_message.forum_topic_created.name;
-    if (topicName !== "Informes") {
+    if (topicName !== configTopicName) {
       bot.answerCallbackQuery(callbackQuery.id, {
         text: "Este comando solo está disponible en el topic 'Menú test'.",
       });
