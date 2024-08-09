@@ -1,6 +1,6 @@
 const dotenv = require("dotenv");
 dotenv.config();
-const bot = require("./server/bot/handlers");
+const bot = require("./server/bot/commands");
 const mongoose = require("mongoose");
 const URL_DB = process.env.MONGO_URI;
 const cron = require("node-cron");
