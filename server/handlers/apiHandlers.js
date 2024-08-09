@@ -5,11 +5,29 @@ const {
   marketOpen,
   fecthGainersOrLosers,
 } = require("../controllers/controllersAPIs");
+const { getTomorrow, getToday } = require("../utils/dates");
 const { transformData } = require("../utils/formatData");
 
 const calendarHandler = async (req, res) => {
+  const {
+    indicatorFilter = "",
+    minImportance = "1",
+    from = getTomorrow(),
+    to = getToday(),
+  } = req.query;
+
+  // Configurar indicatorFilter como un array
+  const indicatorFilterArray = indicatorFilter
+    ? indicatorFilter.split(",")
+    : [];
+  console.log(from, to, indicatorFilterArray, minImportance);
   try {
-    let result = await fetchEconomicCalendar();
+    let result = await fetchEconomicCalendar(
+      indicatorFilter,
+      minImportance,
+      from,
+      to
+    );
     res.json(result);
   } catch (err) {
     throw new Error(err);
@@ -50,7 +68,10 @@ const gainersLosersHandler = async (req, res) => {
     let result = await fecthGainersOrLosers(filter);
 
     if (result && result.data) {
-      let transformedData = transformData(result.data.headers, result.data.rows);
+      let transformedData = transformData(
+        result.data.headers,
+        result.data.rows
+      );
       res.json(transformedData);
     } else {
       res.json({ ok: false, data: [] });
