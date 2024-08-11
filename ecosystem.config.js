@@ -2,7 +2,7 @@
 module.exports = {
   apps: [
     {
-      name: "finance",
+      name: "finance-main",
       script: "app.js",
       watch: true,
       ignore_watch: ["node_modules", "server/logs", ".git"], // Excluye la carpeta de logs y node_modules
