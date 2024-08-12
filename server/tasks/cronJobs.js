@@ -125,6 +125,7 @@ const closeTwelveSymbols = [
 ];
 
 const sendMessageToChatAndTopic = async (chatId, topicId, message) => {
+  console.log(message)
   try {
     await bot.sendMessage(chatId, message, {
       parse_mode: "Markdown",
@@ -184,7 +185,7 @@ const calendarDataCron = cron.schedule(
   }
 );
 
-const openHours = "30 9 * * 1-5";
+const openHours = "41 9 * * 1-5";
 const openMarketCron = cron.schedule(
   openHours,
   async () => {
@@ -214,7 +215,8 @@ const openMarketCron = cron.schedule(
           process.env.TOPIC_INFORMES,
           `*Informe apertura de mercado ${date}*\n\n${formattedMarketData}`
         );
-        await saveMarketData({ data: openMarketData, time: "open" });
+        const savedData = await saveMarketData({ data: openMarketData, time: "open" });
+
         logger.info("Datos de apertura de mercado guardados correctamente.");
       } else {
         logger.info("El mercado no opera el día de la fecha.");
