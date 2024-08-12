@@ -4,7 +4,7 @@ const { saveDataBasePhones } = require("../controllers/phoneDataControllers");
 
 async function loginAndScrape() {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     defaultViewport: null,
     args: [
       "--no-sandbox",
