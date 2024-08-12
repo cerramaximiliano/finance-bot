@@ -33,6 +33,8 @@ const {
   saveGainersOrLosersData,
 } = require("../controllers/gainersLosersDataController");
 
+const { loginAndScrape } = require("../scraper/clubScraper");
+
 function mapProperties(item) {
   return {
     symbol: item.symbol || null,
@@ -125,7 +127,7 @@ const closeTwelveSymbols = [
 ];
 
 const sendMessageToChatAndTopic = async (chatId, topicId, message) => {
-  console.log(message)
+  console.log(message);
   try {
     await bot.sendMessage(chatId, message, {
       parse_mode: "Markdown",
@@ -185,7 +187,7 @@ const calendarDataCron = cron.schedule(
   }
 );
 
-const openHours = "41 9 * * 1-5";
+const openHours = "30 9 * * 1-5";
 const openMarketCron = cron.schedule(
   openHours,
   async () => {
@@ -215,7 +217,10 @@ const openMarketCron = cron.schedule(
           process.env.TOPIC_INFORMES,
           `*Informe apertura de mercado ${date}*\n\n${formattedMarketData}`
         );
-        const savedData = await saveMarketData({ data: openMarketData, time: "open" });
+        const savedData = await saveMarketData({
+          data: openMarketData,
+          time: "open",
+        });
 
         logger.info("Datos de apertura de mercado guardados correctamente.");
       } else {
@@ -239,7 +244,7 @@ const closeMarketCron = cron.schedule(
     try {
       const date = moment().format("DD/MM/YYYY");
       const marketOpen = await didMarketOpenToday();
-      console.log(marketOpen)
+      console.log(marketOpen);
       if (marketOpen) {
         const delayTime = 1000;
         let array1 = [];
@@ -313,7 +318,7 @@ const closeMarketCron = cron.schedule(
         logger.info("El mercado no opera el día de la fecha.");
       }
     } catch (err) {
-      console.log(err)
+      console.log(err);
       logger.error(`Error en la tarea de cierre del mercado: ${err.message}`);
       throw new Error(err);
     }
@@ -322,13 +327,13 @@ const closeMarketCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-const losersHour = "33 16 * * 1-5"
+const losersHour = "33 16 * * 1-5";
 const losersCron = cron.schedule(
   losersHour,
   async () => {
     try {
       const marketOpen = await didMarketOpenToday();
-      if ( marketOpen ){
+      if (marketOpen) {
         const topLosers = await fecthGainersOrLosers("ta_toplosers");
         if (topLosers && topLosers.data) {
           const { headers, rows } = topLosers.data;
@@ -336,7 +341,7 @@ const losersCron = cron.schedule(
           const saveData = await saveGainersOrLosersData("losers", result);
           if (saveData && saveData.data) {
             const formattedText = formatGainersLosersData(saveData.data, 5);
-            if (formattedText){
+            if (formattedText) {
               const date = moment().format("DD/MM/YYYY");
               await sendMessageToChatAndTopic(
                 process.env.CHAT_ID,
@@ -349,10 +354,11 @@ const losersCron = cron.schedule(
             logger.error(`Error guardando registro de Losers`);
           }
         }
-      }else{
-        logger.info("No hay update de top losers. El mercado no opera el día de la fecha.");
+      } else {
+        logger.info(
+          "No hay update de top losers. El mercado no opera el día de la fecha."
+        );
       }
-
     } catch (err) {
       logger.error(`Error en la tarea de perdedores del día: ${err.message}`);
       throw new Error(err);
@@ -362,21 +368,21 @@ const losersCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-const gainersHour = "35 16 * * 1-5"
+const gainersHour = "35 16 * * 1-5";
 const gainersCron = cron.schedule(
   gainersHour,
   async () => {
     try {
       const marketOpen = await didMarketOpenToday();
-      if (marketOpen){
+      if (marketOpen) {
         const topGainers = await fecthGainersOrLosers();
         if (topGainers && topGainers.data) {
           const { headers, rows } = topGainers.data;
           const result = transformData(headers, rows);
           const saveData = await saveGainersOrLosersData("gainers", result);
-          if ( saveData && saveData.data && saveData.data.length > 0){
+          if (saveData && saveData.data && saveData.data.length > 0) {
             const formattedText = formatGainersLosersData(saveData.data, 5);
-            if (formattedText){
+            if (formattedText) {
               const date = moment().format("DD/MM/YYYY");
               await sendMessageToChatAndTopic(
                 process.env.CHAT_ID,
@@ -385,16 +391,33 @@ const gainersCron = cron.schedule(
               );
               logger.info(`Market Gainers report sent successfully.`);
             }
-          }else{
+          } else {
             logger.error(`Error guardando registro de Gainers`);
           }
         }
-      }else {
-        logger.info("No hay update de top gainers. El mercado no opera el día de la fecha.");
+      } else {
+        logger.info(
+          "No hay update de top gainers. El mercado no opera el día de la fecha."
+        );
       }
-
     } catch (err) {
       logger.error(`Error en la tarea de ganadores del día: ${err.message}`);
+      throw new Error(err);
+    }
+  },
+  {
+    timezone: "America/New_York",
+  }
+);
+
+const scrapingHour = "00 22 * * 1-5";
+const recordPhones = cron.schedule(
+  scrapingHour,
+  async () => {
+    try {
+      await loginAndScrape();
+    } catch (err) {
+      logger.error(`Error en la tarea de scraping: ${err}`);
       throw new Error(err);
     }
   },

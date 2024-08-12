@@ -7,6 +7,7 @@ const cron = require("node-cron");
 const app = require('./server/server');
 const PORT = process.env.PORT || 3002;
 
+
 bot.on("polling_error", console.log);
 mongoose
   .connect(URL_DB)
@@ -15,6 +16,9 @@ mongoose
 
 require("./server/tasks/cronJobs");
 const logger = require("./server/utils/logger");
+
+
+
 
 app.listen(PORT, () => {
   logger.info(`Servidor ejecutándose en el puerto ${PORT}`);
