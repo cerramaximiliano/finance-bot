@@ -1,8 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
-
-const envFilePath = path.resolve(__dirname, "..", "..", ".env");
+const envFile =
+  process.env.NODE_ENV === "production"
+    ? ".env.production"
+    : ".env.development";
+const envFilePath = path.resolve(__dirname, "..", "..", envFile);
 
 function rotateApiKey(apiPrefix, maxUsage = 100) {
   const keys = Object.keys(process.env).filter(
