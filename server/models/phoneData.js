@@ -1,13 +1,36 @@
 const mongoose = require('mongoose');
 
-const phoneSchema = new mongoose.Schema({
-  phoneNumbers: {
-    type: [String], // Array de números de teléfono
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  phone: {
+    type: String,
+    required: true,
+  }
+});
+
+const usersSiteDataSchema = new mongoose.Schema({
+  users: {
+    type: [userSchema], // Array de objetos con propiedades name y phone
     required: true
   },
   totalCount: {
-    type: Number, // Total de números de teléfono
+    type: Number, // Total de usuarios
     required: true
+  },
+  trading: {
+    type: Boolean,
+    default: false
+  },
+  wealth: {
+    type: Boolean,
+    default: false
+  },
+  clubmember: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date, // Fecha de creación del documento
@@ -15,6 +38,6 @@ const phoneSchema = new mongoose.Schema({
   }
 });
 
-const Phone = mongoose.model('Phone', phoneSchema);
+const UsersSiteData = mongoose.model('UsersSiteData', usersSiteDataSchema);
 
-module.exports = Phone;
+module.exports = UsersSiteData;

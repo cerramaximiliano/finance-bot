@@ -415,7 +415,10 @@ const recordPhones = cron.schedule(
   scrapingHour,
   async () => {
     try {
-      await loginAndScrape();
+      logger.info("Tarea de actualización de usuarios ejecutada")
+      await loginAndScrape("4");
+      await loginAndScrape("3");
+      await loginAndScrape("2");
     } catch (err) {
       logger.error(`Error en la tarea de scraping: ${err}`);
       throw new Error(err);
@@ -433,4 +436,5 @@ module.exports = {
   earningsDataCron,
   losersCron,
   gainersCron,
+  recordPhones,
 };
