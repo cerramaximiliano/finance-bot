@@ -148,6 +148,7 @@ const earningsDataCron = cron.schedule(
       logger.info("Tarea de actualización de base de datos ejecutada.");
       const earningsCalendar = await fetchEarningCalendar();
       const saveData = await saveOrUpdateData(earningsCalendar);
+      logger.info("Tarea de actualización de Earnings Exitosa")
       return saveData;
     } catch (err) {
       logger.error(err);
