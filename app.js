@@ -15,7 +15,7 @@ bot.on("polling_error", console.log);
 mongoose
   .connect(URL_DB)
   .then(() => logger.info("Conectado a MongoDB"))
-  .catch((err) => console.error("Error al conectar a MongoDB", err));
+  .catch((err) => logger.error("Error al conectar a MongoDB", err));
 
 require("./server/tasks/cronJobs");
 const logger = require("./server/utils/logger");
