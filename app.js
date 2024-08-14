@@ -19,7 +19,10 @@ mongoose
 
 require("./server/tasks/cronJobs");
 const logger = require("./server/utils/logger");
+const { checkTaskSuccess } = require("./server/controllers/tasksControllers");
 logger.info(`Running on ${process.env.NODE_ENV} enviroment`);
 app.listen(PORT, () => {
   logger.info(`Servidor ejecutándose en el puerto ${PORT}`);
 });
+
+checkTaskSuccess()

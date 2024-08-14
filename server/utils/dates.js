@@ -29,8 +29,6 @@ function isMarketOpenToday(nextMarketOpen, nextMarketClose) {
   const currentTime = moment().unix();
   const startOfToday = moment().startOf('day').unix();
   const endOfToday = moment().endOf('day').unix();
-  console.log(currentTime, startOfToday, endOfToday)
-  console.log(nextMarketOpen, nextMarketClose)
   // Verificar si el mercado está abierto actualmente
   if (currentTime >= nextMarketOpen && currentTime <= nextMarketClose) {
       return true;

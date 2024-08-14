@@ -103,7 +103,7 @@ const fetchEarningCalendar = async (
 
 // Finviz
 const fetchMarketCapStocks = async (marketCap = "cap_mega") => {
-  const apiKey = rotateApiKey("API3", 10);
+  const apiKey = rotateApiKey("API3", 100);
   const options = {
     method: "GET",
     url: "https://finviz-screener.p.rapidapi.com/table",
@@ -139,7 +139,7 @@ const fecthGainersOrLosers = async (
   gainersOrLosers = "ta_topgainers",
   order = "change"
 ) => {
-  const apiKey = rotateApiKey("API3", 10);
+  const apiKey = rotateApiKey("API3", 100);
   const options = {
     method: "GET",
     url: "https://finviz-screener.p.rapidapi.com/table",
