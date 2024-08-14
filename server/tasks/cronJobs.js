@@ -284,7 +284,7 @@ const openMarketCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-const closeHour = "34 16 * * 1-5";
+const closeHour = "30 16 * * 1-5";
 const closeMarketCron = cron.schedule(
   closeHour,
   async () => {
