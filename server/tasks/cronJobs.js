@@ -284,7 +284,7 @@ const openMarketCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-const closeHour = "30 16 * * 1-5";
+const closeHour = "50 16 * * 1-5";
 const closeMarketCron = cron.schedule(
   closeHour,
   async () => {
@@ -392,7 +392,7 @@ const closeMarketCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-const losersHour = "39 16 * * 1-5";
+const losersHour = "44 16 * * 1-5";
 const losersCron = cron.schedule(
   losersHour,
   async () => {
@@ -452,7 +452,7 @@ const losersCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-const gainersHour = "40 16 * * 1-5";
+const gainersHour = "45 16 * * 1-5";
 const gainersCron = cron.schedule(
   gainersHour,
   async () => {

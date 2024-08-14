@@ -4,8 +4,8 @@ module.exports = {
     {
       name: "finance-main",
       script: "app.js",
-      watch: true,
-      ignore_watch: ["node_modules", "server/logs", ".git"], // Excluye la carpeta de logs y node_modules
+      watch: false,
+      ignore_watch: ["node_modules", "server/logs", ".env", ".env.production", ".env.development", ".git"], // Excluye la carpeta de logs y node_modules
       env: {
         PORT: 8085,
         NODE_ENV: "production"
