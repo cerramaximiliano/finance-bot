@@ -511,7 +511,7 @@ const gainersCron = cron.schedule(
   }
 );
 
-const scrapingHour = "46 12 * * 1-5";
+const scrapingHour = "20 13 * * 1-5";
 const recordPhones = cron.schedule(
   scrapingHour,
   async () => {

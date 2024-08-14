@@ -36,8 +36,10 @@ async function loginAndScrape(memberType) {
 
     console.log("Login successful!");
     // Navegar a la página "Usuarios"
-    await page.waitForSelector('a[href="users.php"]', { timeout: 60000 });
     await page.setViewport({ width: 1920, height: 1080 });
+
+    await page.waitForSelector('a[href="users.php"]', { timeout: 60000 });
+
     await page.evaluate(() => {
       const link = document.querySelector('a[href="users.php"]');
       link.scrollIntoView({
