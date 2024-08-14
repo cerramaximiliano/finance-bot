@@ -32,7 +32,7 @@ async function loginAndScrape(memberType) {
     // Selector para el botón de envío (Iniciar sesión)
     await page.click('input[type="submit"][value="Iniciar sesión"]');
 
-    await page.waitForNavigation();
+    await page.waitForNavigation({ timeout: 60000 });
 
     console.log("Login successful!");
     // Navegar a la página "Usuarios"
