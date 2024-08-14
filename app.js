@@ -11,7 +11,9 @@ const cron = require("node-cron");
 const app = require("./server/server");
 const PORT = process.env.PORT || 3002;
 
-bot.on("polling_error", console.log);
+bot.on("polling_error", (err) => {
+  logger.error(`Error Telegram Bot ${err}`)
+} );
 mongoose
   .connect(URL_DB)
   .then(() => logger.info("Conectado a MongoDB"))
