@@ -1,5 +1,7 @@
 const puppeteer = require("puppeteer");
 const { saveDataBasePhones } = require("../controllers/phoneDataControllers");
+const logger = require("../utils/logger");
+
 
 async function loginAndScrape(memberType) {
   try {
@@ -22,10 +24,7 @@ async function loginAndScrape(memberType) {
     await page.goto("https://clubdeinversores.com/wp-admin");
 
     // Selector para el campo de nombre de usuario
-    await page.type(
-      'input[name="login_username"]',
-      "cerramaximiliano@gmail.com"
-    );
+    await page.type('input[name="login_username"]', "cerramaximiliano@gmail.com");
     // Selector para el campo de contraseña
     await page.type('input[name="login_password"]', "cerramax?=)(.12");
 
@@ -34,7 +33,7 @@ async function loginAndScrape(memberType) {
 
     await page.waitForNavigation({ timeout: 60000 });
 
-    console.log("Login successful!");
+    logger.info("Login successful!");
     // Navegar a la página "Usuarios"
     await page.setViewport({ width: 1920, height: 1080 });
 
@@ -51,7 +50,7 @@ async function loginAndScrape(memberType) {
     await page.click('a[href="users.php"]');
     await page.waitForNavigation();
 
-    console.log("Redirigido a la página de Usuarios!");
+    logger.info("Redirigido a la página de Usuarios!");
 
     // Esperar a que el enlace "Club Member" esté disponible y hacer clic en él
     await page.waitForSelector(
@@ -62,7 +61,7 @@ async function loginAndScrape(memberType) {
     );
     await page.click(`a[href="users.php?role=s2member_level${memberType}"]`);
 
-    console.log("Redirigido a la página Club Member!");
+    logger.info("Redirigido a la página Club Member!");
 
     // Esperar hasta que el elemento tbody esté presente en la página
     await page.waitForSelector("#the-list");
@@ -84,7 +83,7 @@ async function loginAndScrape(memberType) {
           return { name, phone };
         });
       });
-      console.log(memberData);
+      logger.info(`Datos de miembros obtenidos: ${JSON.stringify(memberData)}`);
       members.push(...memberData);
 
       // Verifica si existe el botón de "Página siguiente"
@@ -115,10 +114,10 @@ async function loginAndScrape(memberType) {
     // Cerrar el navegador si es necesario
     await browser.close();
   } catch (err) {
+    logger.error(`Error durante el scraping: ${err.message}`);
     throw err;
   }
 }
-
 module.exports = {
   loginAndScrape,
 };
