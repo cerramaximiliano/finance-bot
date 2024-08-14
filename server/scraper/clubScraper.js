@@ -2,7 +2,6 @@ const puppeteer = require("puppeteer");
 const { saveDataBasePhones } = require("../controllers/phoneDataControllers");
 const logger = require("../utils/logger");
 
-
 async function loginAndScrape(memberType) {
   try {
     const browser = await puppeteer.launch({
@@ -16,28 +15,38 @@ async function loginAndScrape(memberType) {
         "--no-zygote",
         "--single-process",
         "--disable-gpu",
+        "--disable-webgl"
       ],
       ignoreHTTPSErrors: true,
     });
 
+    logger.info("Navegador lanzado");
+
     const page = await browser.newPage();
-    await page.goto("https://clubdeinversores.com/wp-admin");
+    await page.goto("https://clubdeinversores.com/wp-admin", { waitUntil: 'networkidle2' });
+    logger.info("Página de login cargada");
 
-    // Selector para el campo de nombre de usuario
+    // Ingresar credenciales
     await page.type('input[name="login_username"]', "cerramaximiliano@gmail.com");
-    // Selector para el campo de contraseña
+    logger.info("Nombre de usuario ingresado");
+    
     await page.type('input[name="login_password"]', "cerramax?=)(.12");
+    logger.info("Contraseña ingresada");
 
-    // Selector para el botón de envío (Iniciar sesión)
+    // Iniciar sesión
     await page.click('input[type="submit"][value="Iniciar sesión"]');
+    logger.info("Botón de login clickeado");
 
-    await page.waitForNavigation({ timeout: 60000 });
+    await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 90000 });
+    logger.info("Login exitoso, redirigido");
 
-    logger.info("Login successful!");
-    // Navegar a la página "Usuarios"
+    // Ajustar viewport
     await page.setViewport({ width: 1920, height: 1080 });
+    logger.info("Viewport ajustado");
 
-    await page.waitForSelector('a[href="users.php"]', { timeout: 60000 });
+    // Navegar a la página de usuarios
+    await page.waitForSelector('a[href="users.php"]', { timeout: 90000 });
+    logger.info("Selector para usuarios encontrado");
 
     await page.evaluate(() => {
       const link = document.querySelector('a[href="users.php"]');
@@ -47,27 +56,24 @@ async function loginAndScrape(memberType) {
         inline: "center",
       });
     });
-    await page.click('a[href="users.php"]');
-    await page.waitForNavigation();
+    logger.info("Enlace a usuarios scrolleado");
 
+    await page.goto("https://clubdeinversores.com/wp-admin/users.php");
+    await page.waitForSelector('#the-list', { timeout: 120000 });
     logger.info("Redirigido a la página de Usuarios!");
 
-    // Esperar a que el enlace "Club Member" esté disponible y hacer clic en él
+    // Navegar a la página del miembro
     await page.waitForSelector(
       `a[href="users.php?role=s2member_level${memberType}"]`,
-      {
-        timeout: 80000,
-      }
+      { timeout: 80000 }
     );
     await page.click(`a[href="users.php?role=s2member_level${memberType}"]`);
-
     logger.info("Redirigido a la página Club Member!");
 
     // Esperar hasta que el elemento tbody esté presente en la página
-    await page.waitForSelector("#the-list");
+    await page.waitForSelector("#the-list", { timeout: 120000 });
 
     let hasNextPage = true;
-    let phones = [];
     let members = [];
 
     while (hasNextPage) {
@@ -97,7 +103,7 @@ async function loginAndScrape(memberType) {
         if (!isDisabled) {
           await Promise.all([
             page.click("a.next-page.button"),
-            page.waitForNavigation({ waitUntil: "networkidle0" }), // Espera a que se cargue la nueva página
+            page.waitForNavigation({ waitUntil: "networkidle0", timeout: 120000 }), // Espera a que se cargue la nueva página
           ]);
         } else {
           hasNextPage = false;
@@ -113,11 +119,20 @@ async function loginAndScrape(memberType) {
 
     // Cerrar el navegador si es necesario
     await browser.close();
+    logger.info("Navegador cerrado exitosamente");
+
   } catch (err) {
     logger.error(`Error durante el scraping: ${err.message}`);
+    
+    if (page) {
+      const content = await page.content();
+      logger.error(`Contenido de la página al fallar: ${content}`);
+    }
+    
     throw err;
   }
 }
+
 module.exports = {
   loginAndScrape,
 };

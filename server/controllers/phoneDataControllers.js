@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const UsersSiteData = require('../models/phoneData'); // Asegúrate de que la ruta al modelo sea correcta
+const logger = require('../utils/logger');
 
 async function saveDataBasePhones(data, memberType) {
   try {
@@ -20,7 +21,6 @@ async function saveDataBasePhones(data, memberType) {
       usersDocument.totalCount += data.length;
 
       // Actualizar las propiedades booleanas según el memberType
-      console.log(memberType)
       if (memberType === "2") {
         usersDocument.trading = true;
       }
@@ -31,7 +31,7 @@ async function saveDataBasePhones(data, memberType) {
         usersDocument.clubmember = true;
       }
       await usersDocument.save();
-      console.log('Datos actualizados en el registro existente del día.');
+      logger.info('Datos actualizados en el registro existente del día.');
     } else {
       // Si no existe un documento para hoy, crear uno nuevo con las propiedades booleanas establecidas
       const newDocument = {
@@ -43,10 +43,11 @@ async function saveDataBasePhones(data, memberType) {
       };
       usersDocument = new UsersSiteData(newDocument);
       await usersDocument.save();
-      console.log('Nuevo registro creado para el día actual.');
+      logger.info('Nuevo registro creado para el día actual.');
     }
 
   } catch (err) {
+    logger.error(`Error al guardar en base de datos usuarios del sitio: ${err}`)
     throw new Error(`Error al guardar los datos en la base de datos: ${err.message}`);
   }
 }
