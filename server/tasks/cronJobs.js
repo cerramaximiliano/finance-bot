@@ -6,6 +6,8 @@ const {
   formatMarketData,
   transformData,
   formatGainersLosersData,
+  formatDataEarnings,
+  formatData,
 } = require("../utils/formatData");
 const {
   fetchStockPrice,
@@ -15,6 +17,8 @@ const {
   fetchStockPricesTwelveData,
   fetchStockPricesRealTimeData,
   fecthGainersOrLosers,
+  fetchMarketCap,
+  fetchMarketCapStocks,
 } = require("../controllers/controllersAPIs");
 const MarketData = require("../models/marketData");
 const {
@@ -22,13 +26,21 @@ const {
   saveMarketOpen,
   didMarketOpenToday,
 } = require("../controllers/marketDataController");
-const { saveOrUpdateData } = require("../controllers/earningsDataController");
+const {
+  saveOrUpdateData,
+  findStockDataByDateRange,
+} = require("../controllers/earningsDataController");
 const {
   saveOrUpdateEconomicEvents,
+  findEconomicEventsByDateRange,
 } = require("../controllers/economicEventController");
 const logger = require("../utils/logger");
 const { delay } = require("../utils/delay");
-const { isMarketOpenToday } = require("../utils/dates");
+const {
+  isMarketOpenToday,
+  getClosestDate,
+  readableDate,
+} = require("../utils/dates");
 const {
   saveGainersOrLosersData,
 } = require("../controllers/gainersLosersDataController");
@@ -145,8 +157,94 @@ const sendMessageToChatAndTopic = async (chatId, topicId, message) => {
   }
 };
 
+const earningsNotificationCron = cron.schedule(
+  "30 87 * * 1-5",
+  async () => {
+    try {
+      let text = [];
+      const dataBaseFound = await findStockDataByDateRange();
+      const marketCapData = await fetchMarketCap();
+      if (dataBaseFound && dataBaseFound.length > 0) {
+        logger.info("bot request - earnings Calendar DDBB");
+        text = dataBaseFound.map((element) => {
+          const closestTimestamp = getClosestDate(
+            element.earnings_release_date,
+            element.earnings_release_next_date
+          );
+          return {
+            symbol: element.symbol,
+            name: element.name,
+            date: readableDate(closestTimestamp),
+          };
+        });
+
+        const filteredSymbols = text.filter((item) =>
+          marketCapData.includes(item.symbol)
+        );
+        let earningsCalendarText = `*Earnings Calendar ${moment().format(
+          "DD/MM/YYYY"
+        )}*\n\n`;
+        if (filteredSymbols && filteredSymbols.length > 0) {
+          earningsCalendarText += formatDataEarnings(filteredSymbols);
+        } else {
+          earningsCalendarText += `No hay eventos para la fecha`;
+        }
+
+        if (earningsCalendarText) {
+          sendMessageToChatAndTopic(
+            process.env.CHAT_ID,
+            process.env.TOPIC_INFORMES,
+            earningsCalendarText
+          );
+        }
+      }
+    } catch (err) {
+      logger.error(`error on notification earnings task: ${err}`);
+    }
+  },
+  {
+    timezone: "America/New_York",
+  }
+);
+
+const economicCalendarNotificationCron = cron.schedule(
+  "32 8 * * 1-5",
+  async () => {
+    try {
+      let results = await findEconomicEventsByDateRange();
+      let economicCalendarText = `*Economic Calendar ${moment().format(
+        "DD/MM/YYYY"
+      )}*\n\n`;
+      if (results && results.length > 0) {
+        logger.info("economic Calendar ddbb results");
+        false;
+      }
+      if (results.length > 0) {
+        let formattedData = formatData(results);
+        economicCalendarText = economicCalendarText + formattedData;
+      } else {
+        economicCalendarText =
+          economicCalendarText + "No hay eventos para la fecha";
+      }
+      logger.info(economicCalendarText);
+      if (economicCalendarText) {
+        sendMessageToChatAndTopic(
+          process.env.CHAT_ID,
+          process.env.TOPIC_INFORMES,
+          economicCalendarText
+        );
+      }
+    } catch (err) {
+      logger.err(err);
+    }
+  },
+  {
+    timezone: "America/New_York",
+  }
+);
+
 const earningsDataCron = cron.schedule(
-  "30 8 * * 1-5",
+  "00 8 * * 1-5",
   async () => {
     try {
       const earningsTask = await checkTaskSuccess("earningsDataCron");
@@ -178,16 +276,16 @@ const earningsDataCron = cron.schedule(
 );
 
 const calendarDataCron = cron.schedule(
-  "00 8 * * 1-5",
+  "10 8 * * 1-5",
   async () => {
     try {
       const calendarTask = await checkTaskSuccess("calendarDataCron");
-      if( calendarTask.success){
+      if (calendarTask.success) {
         logger.info(
           "Tarea de actualización de Calendar ya se encuentra ejecutada"
         );
         return;
-      }else{
+      } else {
         logger.info("Tarea de actualización de base de datos ejecutada.");
         const economicCalendar = await fetchEconomicCalendar();
         if (
@@ -224,7 +322,7 @@ const openMarketCron = cron.schedule(
   async () => {
     try {
       const openMarketTask = await checkTaskSuccess("openMarketDataCron");
-      if( openMarketTask.success){
+      if (openMarketTask.success) {
         logger.info(
           "Tarea de actualización de Open Market ya se encuentra ejecutada"
         );
@@ -290,19 +388,19 @@ const closeMarketCron = cron.schedule(
   async () => {
     try {
       const closeMarketTask = await checkTaskSuccess("closeMarketDataCron");
-      if ( closeMarketTask.success ){
+      if (closeMarketTask.success) {
         logger.info(
           "Tarea de actualización de Close Market ya se encuentra ejecutada"
         );
         return;
-      }else{
+      } else {
         const date = moment().format("DD/MM/YYYY");
         const marketOpen = await didMarketOpenToday();
         if (marketOpen) {
           const delayTime = 1000;
           let array1 = [];
           let array2 = [];
-  
+
           while (true) {
             try {
               const results = await fetchStockPricesTwelveData();
@@ -324,7 +422,7 @@ const closeMarketCron = cron.schedule(
               break; // Salir del bucle si ocurre un error no relacionado con el rate limit
             }
           }
-  
+
           try {
             const results = await fetchStockPricesRealTimeData();
             if (results.data && results.data.status === "OK") {
@@ -339,12 +437,12 @@ const closeMarketCron = cron.schedule(
           } catch (err) {
             logger.error(`Error fetching data from RealTimeData: ${err}`);
           }
-  
+
           try {
             logger.info(`Merging arrays`);
             const mergedArray = mergeArrays(array2, array1);
             logger.info(`Merged array: ${JSON.stringify(mergedArray)}`);
-  
+
             logger.info(`Formatting market data`);
             const formattedMarketData = formatMarketData(
               mergedArray,
@@ -352,7 +450,7 @@ const closeMarketCron = cron.schedule(
               "close"
             );
             logger.info(`Formatted market data: ${formattedMarketData}`);
-  
+
             logger.info(`Sending market report to chat and topic`);
             await sendMessageToChatAndTopic(
               process.env.CHAT_ID,
@@ -360,7 +458,7 @@ const closeMarketCron = cron.schedule(
               `*Informe de cierre de mercado ${date}*\n\n${formattedMarketData}`
             );
             logger.info(`Market report sent successfully.`);
-  
+
             logger.info(`Saving market data`);
             await saveMarketData({ data: mergedArray, time: "close" });
             logger.info("Datos de cierre de mercado guardados correctamente.");
@@ -381,8 +479,6 @@ const closeMarketCron = cron.schedule(
           );
         }
       }
-
-
     } catch (err) {
       logger.error(`Error en la tarea de cierre del mercado: ${err.message}`);
       throw new Error(err);
@@ -398,12 +494,12 @@ const losersCron = cron.schedule(
   async () => {
     try {
       const losersMarketTask = await checkTaskSuccess("losersMarketDataCron");
-      if (losersMarketTask.success){
+      if (losersMarketTask.success) {
         logger.info(
           "Tarea de actualización de Losers Market ya se encuentra ejecutada"
         );
         return;
-      }else {
+      } else {
         const marketOpen = await didMarketOpenToday();
         if (marketOpen) {
           const topLosers = await fecthGainersOrLosers("ta_toplosers");
@@ -425,7 +521,7 @@ const losersCron = cron.schedule(
                   "losersMarketDataCron",
                   "success",
                   "Tarea de losers market realizada exitosamente"
-                ); 
+                );
               }
             } else {
               logger.error(`Error guardando registro de Losers`);
@@ -439,10 +535,9 @@ const losersCron = cron.schedule(
             "losersMarketDataCron",
             "success",
             "Tarea de losers market realizada exitosamente"
-          ); 
+          );
         }
       }
-
     } catch (err) {
       logger.error(`Error en la tarea de perdedores del día: ${err.message}`);
       throw new Error(err);
@@ -458,7 +553,7 @@ const gainersCron = cron.schedule(
   async () => {
     try {
       const gainersMarketTask = await checkTaskSuccess("gainersMarketDataCron");
-      if ( gainersMarketTask.success){
+      if (gainersMarketTask.success) {
         logger.info(
           "Tarea de actualización de Gainers Market ya se encuentra ejecutada"
         );
@@ -484,7 +579,7 @@ const gainersCron = cron.schedule(
                 "gainersMarketDataCron",
                 "success",
                 "Tarea de gainers market realizada exitosamente"
-              ); 
+              );
               logger.info(`Market Gainers report sent successfully.`);
             }
           } else {
@@ -499,7 +594,7 @@ const gainersCron = cron.schedule(
           "gainersMarketDataCron",
           "success",
           "Tarea de gainers market realizada exitosamente"
-        ); 
+        );
       }
     } catch (err) {
       logger.error(`Error en la tarea de ganadores del día: ${err.message}`);
@@ -517,7 +612,7 @@ const recordPhones = cron.schedule(
   async () => {
     try {
       const scrapingTask = await checkTaskSuccess("scrapingDataCron");
-      if ( scrapingTask.success){
+      if (scrapingTask.success) {
         logger.info(
           "Tarea de actualización de scraping site ya se encuentra ejecutada"
         );
@@ -532,7 +627,7 @@ const recordPhones = cron.schedule(
         "scrapingDataCron",
         "success",
         "Tarea de scraping realizada exitosamente"
-      ); 
+      );
     } catch (err) {
       logger.error(`Error en la tarea de scraping: ${err}`);
       throw new Error(err);
@@ -552,4 +647,6 @@ module.exports = {
   losersCron,
   gainersCron,
   recordPhones,
+  earningsNotificationCron,
+  economicCalendarNotificationCron,
 };
