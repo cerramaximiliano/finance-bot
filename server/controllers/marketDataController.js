@@ -48,11 +48,11 @@ const saveMarketOpen = async (data) => {
     nextMarketClose: data.attributes.nextMarketClose,
   });
   try {
-    console.log("Registro de apertura de mercado guardado correctamente");
+    logger.info("Registro de apertura de mercado guardado correctamente");
     return await marketOpenEntry.save();
   } catch (err) {
-    console.error("Error al guardar el registro de apertura de mercado:", err);
-    throw error;
+    logger.error("Error al guardar el registro de apertura de mercado:", err);
+    throw err;
   }
 };
 

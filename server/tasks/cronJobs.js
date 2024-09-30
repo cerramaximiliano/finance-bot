@@ -316,7 +316,7 @@ const calendarDataCron = cron.schedule(
   }
 );
 
-const openHours = "30 9 * * 1-5";
+const openHours = "31 12 * * 1-5";
 const openMarketCron = cron.schedule(
   openHours,
   async () => {
@@ -340,7 +340,8 @@ const openMarketCron = cron.schedule(
         const openMarketData = await fetchAllStockPrices(
           fetchStockPrice,
           openSymbols,
-          delayTime
+          delayTime,
+          3
         );
         const formattedMarketData = formatMarketData(
           openMarketData,
