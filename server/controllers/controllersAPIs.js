@@ -97,6 +97,7 @@ const fetchEarningCalendar = async (
       return [];
     }
   } catch (error) {
+    console.log(error)
     throw new Error(`Error fetching earning calendar data: ${error.message}`);
   }
 };

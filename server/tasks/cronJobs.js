@@ -244,17 +244,17 @@ const economicCalendarNotificationCron = cron.schedule(
 );
 
 const earningsDataCron = cron.schedule(
-  "00 8 * * 1-5",
+  "20 9 * * 1-5",
   async () => {
     try {
       const earningsTask = await checkTaskSuccess("earningsDataCron");
       if (earningsTask.success) {
         logger.info(
-          "Tarea de actualización de Earnings ya se encuentra ejecutada"
+          "Tarea de actualización de Earnings Calendar ya se encuentra ejecutada"
         );
         return;
       } else {
-        logger.info("Tarea de actualización de base de datos ejecutada.");
+        logger.info("Tarea de actualización de base de datos ejecutada - Earnings Calendar.");
         const earningsCalendar = await fetchEarningCalendar();
         const saveData = await saveOrUpdateData(earningsCalendar);
         logger.info("Tarea de actualización de Earnings Exit");
