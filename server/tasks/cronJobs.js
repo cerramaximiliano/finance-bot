@@ -616,9 +616,9 @@ const gainersCron = cron.schedule(
   }
 );
 
-const scrapingHour = "42 14 * * 1-5";
+const recordPhonesHours = "42 14 * * 1-5";
 const recordPhones = cron.schedule(
-  scrapingHour,
+  recordPhonesHours,
   async () => {
     try {
       const scrapingTask = await checkTaskSuccess("scrapingDataCron");
