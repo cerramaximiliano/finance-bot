@@ -159,7 +159,7 @@ const sendMessageToChatAndTopic = async (chatId, topicId, message) => {
 // Cron que envía mensaje de Earnings Calendar
 const earningsCalendarNotificationHours = "40 8 * * 1-5";
 const earningsNotificationCron = cron.schedule(
-  "30 8 * * 1-5",
+  earningsCalendarNotificationHours,
   async () => {
     try {
       let text = [];
