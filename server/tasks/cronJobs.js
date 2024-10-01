@@ -242,9 +242,9 @@ const economicCalendarNotificationCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-
+// Cron que actualiza la base de datos de Earnings Calendar
 const earningsDataCron = cron.schedule(
-  "20 9 * * 1-5",
+  "25 8 * * 1-5",
   async () => {
     try {
       const earningsTask = await checkTaskSuccess("earningsDataCron");
@@ -274,9 +274,9 @@ const earningsDataCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-
+// Cron que actualiza la base de datos de Economic Calendar
 const calendarDataCron = cron.schedule(
-  "10 8 * * 1-5",
+  "30 8 * * 1-5",
   async () => {
     try {
       const calendarTask = await checkTaskSuccess("calendarDataCron");
@@ -286,7 +286,7 @@ const calendarDataCron = cron.schedule(
         );
         return;
       } else {
-        logger.info("Tarea de actualización de base de datos ejecutada.");
+        logger.info("Tarea de actualización de base de datos ejecutada - Economic Calendar.");
         const economicCalendar = await fetchEconomicCalendar();
         if (
           economicCalendar &&
