@@ -156,7 +156,8 @@ const sendMessageToChatAndTopic = async (chatId, topicId, message) => {
     );
   }
 };
-
+// Cron que envía mensaje de Earnings Calendar
+const earningsCalendarNotificationHours = "40 8 * * 1-5";
 const earningsNotificationCron = cron.schedule(
   "30 8 * * 1-5",
   async () => {
@@ -206,9 +207,10 @@ const earningsNotificationCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-
+// Cron que envía mensaje de Economic Calendar
+const economicCalendarNotificationHours = "42 8 * * 1-5";
 const economicCalendarNotificationCron = cron.schedule(
-  "32 8 * * 1-5",
+  economicCalendarNotificationHours,
   async () => {
     try {
       let results = await findEconomicEventsByDateRange();
@@ -243,8 +245,9 @@ const economicCalendarNotificationCron = cron.schedule(
   }
 );
 // Cron que actualiza la base de datos de Earnings Calendar
+const earningsUpdateHours = "33 8 * * 1-5";
 const earningsDataCron = cron.schedule(
-  "25 8 * * 1-5",
+  earningsUpdateHours,
   async () => {
     try {
       const earningsTask = await checkTaskSuccess("earningsDataCron");
@@ -254,7 +257,9 @@ const earningsDataCron = cron.schedule(
         );
         return;
       } else {
-        logger.info("Tarea de actualización de base de datos ejecutada - Earnings Calendar.");
+        logger.info(
+          "Tarea de actualización de base de datos ejecutada - Earnings Calendar."
+        );
         const earningsCalendar = await fetchEarningCalendar();
         const saveData = await saveOrUpdateData(earningsCalendar);
         logger.info("Tarea de actualización de Earnings Exit");
@@ -275,8 +280,9 @@ const earningsDataCron = cron.schedule(
   }
 );
 // Cron que actualiza la base de datos de Economic Calendar
+const calendarUpdateHours = "35 8 * * 1-5";
 const calendarDataCron = cron.schedule(
-  "30 8 * * 1-5",
+  calendarUpdateHours,
   async () => {
     try {
       const calendarTask = await checkTaskSuccess("calendarDataCron");
@@ -286,7 +292,9 @@ const calendarDataCron = cron.schedule(
         );
         return;
       } else {
-        logger.info("Tarea de actualización de base de datos ejecutada - Economic Calendar.");
+        logger.info(
+          "Tarea de actualización de base de datos ejecutada - Economic Calendar."
+        );
         const economicCalendar = await fetchEconomicCalendar();
         if (
           economicCalendar &&
@@ -315,7 +323,7 @@ const calendarDataCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-
+// Cron que actualiza la base de datos de Open Market Symbols y envía mensaje Telegram
 const openHours = "31 12 * * 1-5";
 const openMarketCron = cron.schedule(
   openHours,
@@ -383,6 +391,7 @@ const openMarketCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
+// Cron que actualiza la base de datos de Close Market Symbols y envía mensaje Telegram
 const closeHour = "30 16 * * 1-5";
 const closeMarketCron = cron.schedule(
   closeHour,
