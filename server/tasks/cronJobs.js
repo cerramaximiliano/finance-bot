@@ -157,7 +157,7 @@ const sendMessageToChatAndTopic = async (chatId, topicId, message) => {
   }
 };
 // Cron que envía mensaje de Earnings Calendar
-const earningsCalendarNotificationHours = "40 8 * * 1-5";
+const earningsCalendarNotificationHours = "30 8 * * 1-5";
 const earningsNotificationCron = cron.schedule(
   earningsCalendarNotificationHours,
   async () => {
@@ -208,7 +208,7 @@ const earningsNotificationCron = cron.schedule(
   }
 );
 // Cron que envía mensaje de Economic Calendar
-const economicCalendarNotificationHours = "42 8 * * 1-5";
+const economicCalendarNotificationHours = "32 8 * * 1-5";
 const economicCalendarNotificationCron = cron.schedule(
   economicCalendarNotificationHours,
   async () => {
