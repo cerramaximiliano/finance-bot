@@ -324,7 +324,7 @@ const calendarDataCron = cron.schedule(
   }
 );
 // Cron que actualiza la base de datos de Open Market Symbols y envía mensaje Telegram
-const openHours = "31 12 * * 1-5";
+const openHours = "30 9 * * 1-5";
 const openMarketCron = cron.schedule(
   openHours,
   async () => {
