@@ -1,3 +1,5 @@
+const {logger} = require("./logger");
+
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const fetchStockPriceWithRetry = async (fetchStockPrice, symbol, delayTime, retries = 3) => {

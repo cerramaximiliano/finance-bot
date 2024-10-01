@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const UsersSiteData = require('../models/phoneData'); // Asegúrate de que la ruta al modelo sea correcta
-const logger = require('../utils/logger');
+const {logger} = require('../utils/logger');
 
 async function saveDataBasePhones(data, memberType) {
   try {

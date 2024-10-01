@@ -1,4 +1,4 @@
-const logger = require("../utils/logger");
+const {logger} = require("../utils/logger");
 const MarketData = require("../models/marketData");
 const MarketOpen = require("../models/maketStatus");
 const moment = require("moment");

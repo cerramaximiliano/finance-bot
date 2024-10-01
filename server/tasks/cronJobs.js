@@ -34,7 +34,7 @@ const {
   saveOrUpdateEconomicEvents,
   findEconomicEventsByDateRange,
 } = require("../controllers/economicEventController");
-const logger = require("../utils/logger");
+const {logger} = require("../utils/logger");
 const { delay } = require("../utils/delay");
 const {
   isMarketOpenToday,

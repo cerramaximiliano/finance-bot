@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const apiRoutes = require('./routes/apiRoutes');
 const usersRoutes = require("./routes/usersRoutes");
-const logger = require('./utils/logger');
+const {logger} = require('./utils/logger');
 const telegramErrorHandler = require('./middleware/errorHandler');
 const app = express();
 

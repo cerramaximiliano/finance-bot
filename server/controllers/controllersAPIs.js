@@ -16,7 +16,7 @@ const {
   rapidApiYahooFinance,
   rapidApiFinvizHost,
 } = require("../config/configAPIs");
-const logger = require("../utils/logger");
+const {logger} = require("../utils/logger");
 const { rotateApiKey, updateApiUsageCount } = require("../config/rotateAPI");
 const { transformData } = require("../utils/formatData");
 

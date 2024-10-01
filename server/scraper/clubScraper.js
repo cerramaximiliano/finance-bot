@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
 const { saveDataBasePhones } = require("../controllers/phoneDataControllers");
-const logger = require("../utils/logger");
+const {logger} = require("../utils/logger");
 
 async function loginAndScrape(memberType) {
   try {

@@ -1,6 +1,6 @@
 const EconomicEvent = require("../models/economicData");
 const { getToday, getTomorrow } = require("../utils/dates");
-const logger = require("../utils/logger");
+const {logger} = require("../utils/logger");
 
 const saveOrUpdateEconomicEvents = async (events) => {
   const operations = events.map((event) => ({
