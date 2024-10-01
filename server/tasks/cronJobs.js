@@ -34,7 +34,7 @@ const {
   saveOrUpdateEconomicEvents,
   findEconomicEventsByDateRange,
 } = require("../controllers/economicEventController");
-const {logger} = require("../utils/logger");
+const { logger, clearLogs } = require("../utils/logger");
 const { delay } = require("../utils/delay");
 const {
   isMarketOpenToday,
@@ -50,6 +50,7 @@ const {
   checkTaskSuccess,
   logTaskExecution,
 } = require("../controllers/tasksControllers");
+const { Logform } = require("winston");
 
 function mapProperties(item) {
   return {
@@ -615,7 +616,6 @@ const gainersCron = cron.schedule(
     timezone: "America/New_York",
   }
 );
-
 const recordPhonesHours = "42 14 * * 1-5";
 const recordPhones = cron.schedule(
   recordPhonesHours,
@@ -647,6 +647,17 @@ const recordPhones = cron.schedule(
     timezone: "America/New_York",
   }
 );
+const clearCronHours = "0 0 */10 * *";
+const clearLogger = cron.schedule("0 0 */10 * *", async () => {
+  try {
+    logger.info(`Tarea de ejecución de limpieza de logs`);
+    await clearLogs();
+  } catch (err) {
+    logger.error(
+      `Error en la tarea de ejecución de limpieza de logger: ${err}`
+    );
+  }
+});
 
 module.exports = {
   openMarketCron,
@@ -659,4 +670,5 @@ module.exports = {
   recordPhones,
   earningsNotificationCron,
   economicCalendarNotificationCron,
+  clearLogger,
 };
