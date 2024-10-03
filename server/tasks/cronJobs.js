@@ -166,6 +166,7 @@ const earningsNotificationCron = cron.schedule(
       let text = [];
       const dataBaseFound = await findStockDataByDateRange();
       const marketCapData = await fetchMarketCap();
+      console.log(dataBaseFound, marketCapData)
       if (dataBaseFound && dataBaseFound.length > 0) {
         logger.info("bot request - earnings Calendar DDBB");
         text = dataBaseFound.map((element) => {
@@ -246,7 +247,7 @@ const economicCalendarNotificationCron = cron.schedule(
   }
 );
 // Cron que actualiza la base de datos de Earnings Calendar
-const earningsUpdateHours = "33 8 * * 1-5";
+const earningsUpdateHours = "20 8 * * 1-5";
 const earningsDataCron = cron.schedule(
   earningsUpdateHours,
   async () => {
@@ -281,7 +282,7 @@ const earningsDataCron = cron.schedule(
   }
 );
 // Cron que actualiza la base de datos de Economic Calendar
-const calendarUpdateHours = "35 8 * * 1-5";
+const calendarUpdateHours = "22 8 * * 1-5";
 const calendarDataCron = cron.schedule(
   calendarUpdateHours,
   async () => {
