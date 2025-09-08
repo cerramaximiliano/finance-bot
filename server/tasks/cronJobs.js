@@ -114,24 +114,30 @@ const openSymbols = [
   { description: "Etherum/USD", symbol: "ETH-USD" },
 ];
 const closeSymbols = [
-  { description: "S&P 500", symbol: "SPX" },
-  { description: "Nasdaq", symbol: "IXIC" },
-  { description: "Dow Jones", symbol: "DJI" },
-  { description: "Russell 2000", symbol: "RUT" },
-  { description: "Tasa Bonos US 10 años ", symbol: "TNX" },
+  // Índices principales de USA
+  { description: "S&P 500", symbol: "^SPX" },
+  { description: "Dow Jones", symbol: "^DJI" },
+  { description: "Russell 2000", symbol: "^RUT" },
+  // Índices internacionales
   { description: "DAX", symbol: "^GDAXI", country: "Germany" },
   { description: "SSE", symbol: "000001.SS", country: "China" },
   { description: "Nikkei", symbol: "^N225" },
   { description: "Bovespa", symbol: "^BVSP" },
-  { description: "Merval", symbol: "^MERV" }, // no trae currency
-  { description: "US Dólar Index", symbol: "DXY" },
+  { description: "Merval", symbol: "^MERV" },
+  // Futuros y commodities
   { description: "Futuros Soja", symbol: "ZS=F" },
   { description: "Futuros Oro", symbol: "GC=F" },
   { description: "Futuros Plata", symbol: "SI=F" },
   { description: "Futuros Petróleo", symbol: "CL=F" },
+  // Criptomonedas
   { description: "Bitcoin/USD", symbol: "BTC-USD" },
   { description: "Etherum/USD", symbol: "ETH-USD" },
 ];
+
+// Símbolos pendientes de investigar (no disponibles actualmente)
+// - Nasdaq (IXIC): Pendiente encontrar símbolo correcto
+// - Tasa Bonos US 10 años (TNX): Pendiente encontrar símbolo correcto
+// - US Dólar Index (DXY): Pendiente encontrar símbolo correcto
 // realtimefinance data ^GDAXI,000001.SS,^N225,^BVSP,^MERV
 const closeYahooSymbols = [
   { description: "DAX", symbol: "^GDAXI", country: "Germany" },
@@ -556,9 +562,9 @@ const closeMarketCron = cron.schedule(
             logger.info(`Market report sent successfully.`);
 
             // Guardar solo si hay datos
-            if (mergedArray && mergedArray.length > 0) {
+            if (closeMarketData && closeMarketData.length > 0) {
               logger.info(`Saving market data`);
-              await saveMarketData({ data: mergedArray, time: "close" });
+              await saveMarketData({ data: closeMarketData, time: "close" });
               logger.info("Datos de cierre de mercado guardados correctamente.");
             }
             

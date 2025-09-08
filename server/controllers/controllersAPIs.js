@@ -320,17 +320,9 @@ const fetchStockPrice = async (symbol) => {
 
 /* Twelve Data */
 const fetchStockPricesTwelveData = async (symbols) => {
-  // Usar rotación de API keys para TwelveData (límite muy bajo: 100/mes)
-  // Primero intentar con rotación, si no hay keys configuradas usar IUBILARE o principal
-  let apiKey;
-  try {
-    apiKey = rotateApiKey("TWELVE", 8); // Rotar cada 8 usos (100/mes ÷ 30 días ÷ 4 llamadas diarias aprox)
-    logger.info(`TwelveData using rotated key`);
-  } catch (err) {
-    // Si no hay keys para rotar, usar IUBILARE o la principal
-    apiKey = rapidApiKeyIubilare || rapidApiKey;
-    logger.info(`TwelveData using fallback key: ${apiKey === rapidApiKeyIubilare ? 'IUBILARE' : 'DEFAULT'}`);
-  }
+  // TwelveData siempre usa RAPID_API_KEY (sin rotación, tiene suficientes créditos)
+  const apiKey = rapidApiKey;
+  logger.info(`TwelveData using RAPID_API_KEY`);
   
   const options = {
     method: "GET",
@@ -350,18 +342,14 @@ const fetchStockPricesTwelveData = async (symbols) => {
   try {
     const response = await axios.request(options);
     
-    // Actualizar contador de uso si hay headers de rate limit
+    // Log headers de rate limit para monitoreo
     const remaining = response.headers['x-ratelimit-requests-remaining'];
     const limit = response.headers['x-ratelimit-requests-limit'];
-    if (remaining && limit) {
-      const used = limit - remaining;
-      updateApiUsageCount("TWELVE_USAGE_COUNT", used);
-    }
     
     logger.info(`TwelveData API Response:`);
     logger.info(`- Status: ${response.status}`);
+    logger.info(`- API Key: RAPID_API_KEY`);
     logger.info(`- Rate Limit: ${remaining || 'N/A'}/${limit || 'N/A'} remaining`);
-    logger.info(`- Headers: ${JSON.stringify(response.headers['x-ratelimit-requests-remaining'] || 'N/A')} requests remaining`);
     
     // Log estructura de la respuesta
     if (response.data) {
@@ -403,11 +391,12 @@ const fetchStockPricesTwelveData = async (symbols) => {
 
 /* Real-Time Finance Data - Single Symbol */
 const fetchSingleStockRealTime = async (symbol) => {
-  // RealTimeData tiene límite de 100/mes, rotar cada 3 usos para distribuir en el mes
-  const apiKey = rotateApiKey("API1", 3); // 100 consultas/mes ÷ 30 días ≈ 3 por día
+  // Usar directamente RAPID_API_KEY_IUBILARE que sabemos que funciona
+  const apiKey = rapidApiKeyIubilare || rapidApiKey || "621ed88709msh98d154a956d1ac8p1048b4jsn33f22e7820db";
+  
   const options = {
     method: "GET",
-    url: "https://real-time-finance-data.p.rapidapi.com/stock-quote-source-2",
+    url: "https://real-time-finance-data.p.rapidapi.com/stock-quote",
     params: {
       symbol: symbol
     },
@@ -419,17 +408,24 @@ const fetchSingleStockRealTime = async (symbol) => {
   
   try {
     const response = await axios.request(options);
-    const usageAPI =
-      response.headers["x-ratelimit-requests-limit"] -
-      response.headers["x-ratelimit-requests-remaining"];
-    if (typeof usageAPI === "number") {
-      updateApiUsageCount("API1_USAGE_COUNT", usageAPI);
+    
+    logger.info(`[${symbol}] RealTimeData: Status ${response.status}, Remaining: ${response.headers["x-ratelimit-requests-remaining"] || 'N/A'}`);
+    
+    // Log para debugging
+    if (response.data) {
+      logger.info(`[${symbol}] Response structure: ${JSON.stringify(response.data).substring(0, 200)}`);
     }
     
-    logger.info(`[${symbol}] RealTimeData: Status ${response.status}, Remaining: ${response.headers["x-ratelimit-requests-remaining"]}`);
-    
-    if (response.data && response.data.status === "OK" && response.data.data) {
-      return response.data.data; // Retornar solo los datos del símbolo
+    // La API puede devolver los datos directamente en response.data
+    if (response.data && response.status === 200) {
+      // Si tiene la estructura {status: "OK", data: {...}}
+      if (response.data.status === "OK" && response.data.data) {
+        return response.data.data;
+      }
+      // Si los datos vienen directamente en response.data
+      else if (response.data.symbol || response.data.price) {
+        return response.data;
+      }
     }
     return null;
   } catch (err) {

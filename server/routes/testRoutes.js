@@ -32,24 +32,30 @@ const openSymbols = [
 
 // Símbolos para cierre
 const closeSymbols = [
-  { description: "S&P 500", symbol: "SPX" },
-  { description: "Nasdaq", symbol: "IXIC" },
-  { description: "Dow Jones", symbol: "DJI" },
-  { description: "Russell 2000", symbol: "RUT" },
-  { description: "Tasa Bonos US 10 años ", symbol: "TNX" },
+  // Índices principales de USA
+  { description: "S&P 500", symbol: "^SPX" },
+  { description: "Dow Jones", symbol: "^DJI" },
+  { description: "Russell 2000", symbol: "^RUT" },
+  // Índices internacionales
   { description: "DAX", symbol: "^GDAXI", country: "Germany" },
   { description: "SSE", symbol: "000001.SS", country: "China" },
   { description: "Nikkei", symbol: "^N225" },
   { description: "Bovespa", symbol: "^BVSP" },
   { description: "Merval", symbol: "^MERV" },
-  { description: "US Dólar Index", symbol: "DXY" },
+  // Futuros y commodities
   { description: "Futuros Soja", symbol: "ZS=F" },
   { description: "Futuros Oro", symbol: "GC=F" },
   { description: "Futuros Plata", symbol: "SI=F" },
   { description: "Futuros Petróleo", symbol: "CL=F" },
+  // Criptomonedas
   { description: "Bitcoin/USD", symbol: "BTC-USD" },
   { description: "Etherum/USD", symbol: "ETH-USD" },
 ];
+
+// Símbolos pendientes de investigar (no disponibles actualmente)
+// - Nasdaq (IXIC): Pendiente encontrar símbolo correcto
+// - Tasa Bonos US 10 años (TNX): Pendiente encontrar símbolo correcto
+// - US Dólar Index (DXY): Pendiente encontrar símbolo correcto
 
 // Helper para merge arrays
 function mapProperties(item) {
@@ -177,11 +183,79 @@ router.get('/test-close-market', async (req, res) => {
   try {
     logger.info("TEST: Iniciando test de cierre de mercado");
     const date = moment().format("DD/MM/YYYY");
+    const send = req.query.send === 'true';
+    
+    // Usar Yahoo Finance API para todos los símbolos del cierre
+    const delayTime = 1000;
+    const closeMarketData = await fetchAllStockPrices(
+      fetchStockPrice,
+      closeSymbols,
+      delayTime,
+      3
+    );
+    
+    // Verificar si hay datos disponibles
+    if (!closeMarketData || closeMarketData.length === 0) {
+      logger.error("TEST: No se obtuvieron datos de cierre de mercado");
+      return res.json({
+        success: false,
+        message: "No se obtuvieron datos",
+        dataCount: 0,
+        totalSymbols: closeSymbols.length
+      });
+    }
+    
+    // Formatear mensaje
+    const formattedData = formatMarketData(
+      closeMarketData,
+      closeSymbols,
+      "close"
+    );
+    
+    const messageToSend = `*TEST - Informe de cierre de mercado ${date}*\n\n${formattedData}`;
+    
+    // Enviar mensaje si se solicita
+    if (send) {
+      const topicInfo = {
+        chatId: process.env.CHAT_ID,
+        topicId: parseInt(process.env.TOPIC_INFORMES)
+      };
+      await bot.sendMessage(topicInfo.chatId, messageToSend, {
+        message_thread_id: topicInfo.topicId,
+        parse_mode: "Markdown",
+      });
+      logger.info(`TEST: Mensaje de cierre enviado a chatId: ${topicInfo.chatId}, topicId: ${topicInfo.topicId}`);
+    }
+    
+    res.json({
+      success: true,
+      message: "Test de cierre completado",
+      dataCount: closeMarketData.length,
+      totalSymbols: closeSymbols.length,
+      preview: messageToSend.substring(0, 500),
+      sent: send
+    });
+    
+  } catch (error) {
+    logger.error(`TEST: Error en test de cierre: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Test cierre de mercado - ANTIGUO (DEPRECADO)
+router.get('/test-close-market-old', async (req, res) => {
+  try {
+    logger.info("TEST: Iniciando test de cierre de mercado (método antiguo)");
+    const date = moment().format("DD/MM/YYYY");
     
     let array1 = [];
     let array2 = [];
     
-    // Obtener datos de TwelveData
+    // Código antiguo con TwelveData y RealTimeData
+    // Mantenido solo como referencia
     try {
       const results = await fetchStockPricesTwelveData();
       logger.info(`TEST: TwelveData response status: ${results.status}`);

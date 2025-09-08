@@ -185,6 +185,61 @@ The application uses `node-cron` to schedule data fetching jobs. The following c
     - Schedule: Monday to Friday at 4:30 PM
     - Task: Fetch and save close market data
 
+### Market Data Symbols
+
+#### Open Market Symbols (10:30 AM Argentina Time)
+The following symbols are fetched and sent in the market opening message using Yahoo Finance API:
+
+| Description | Symbol | Type |
+|------------|--------|------|
+| Futuros Bonos US 10 años | ZN=F | Futures |
+| Futuros Soja | ZS=F | Futures |
+| Futuros Oro | GC=F | Futures |
+| Futuros Plata | SI=F | Futures |
+| Futuros Petróleo | CL=F | Futures |
+| Futuros S&P 500 | ES=F | Futures |
+| Futuros NASDAQ 100 | NQ=F | Futures |
+| Futuros Dow Jones | YM=F | Futures |
+| Futuros Russell 2000 | RTY=F | Futures |
+| Futuros Dólar Index | DX=F | Futures |
+| Bitcoin/USD | BTC-USD | Cryptocurrency |
+| Ethereum/USD | ETH-USD | Cryptocurrency |
+
+**Total Symbols:** 12
+
+#### Close Market Symbols (5:30 PM Argentina Time)
+The following symbols are fetched and sent in the market closing message using Yahoo Finance API:
+
+| Description | Symbol | Type/Country |
+|------------|--------|-------------|
+| S&P 500 | ^SPX | Index |
+| Dow Jones | ^DJI | Index |
+| Russell 2000 | ^RUT | Index |
+| DAX | ^GDAXI | Germany |
+| SSE | 000001.SS | China |
+| Nikkei | ^N225 | Japan |
+| Bovespa | ^BVSP | Brazil |
+| Merval | ^MERV | Argentina |
+| Futuros Soja | ZS=F | Futures |
+| Futuros Oro | GC=F | Futures |
+| Futuros Plata | SI=F | Futures |
+| Futuros Petróleo | CL=F | Futures |
+| Bitcoin/USD | BTC-USD | Cryptocurrency |
+| Ethereum/USD | ETH-USD | Cryptocurrency |
+
+**Total Symbols:** 14
+
+##### Símbolos Pendientes de Investigación
+Los siguientes símbolos no están disponibles actualmente con los tickers especificados y requieren investigación para encontrar los símbolos correctos:
+
+| Description | Symbol Intentado | Estado |
+|------------|-----------------|--------|
+| Nasdaq | IXIC | Pendiente - Buscar símbolo correcto |
+| Tasa Bonos US 10 años | TNX | Pendiente - Buscar símbolo correcto |
+| US Dólar Index | DXY | Pendiente - Buscar símbolo correcto |
+
+**Nota:** Todos los símbolos del cierre ahora se obtienen usando la misma API de Yahoo Finance que se utiliza para la apertura del mercado, lo que proporciona mayor consistencia y confiabilidad.
+
 ## Testing
 
 To run tests, use the following command:
