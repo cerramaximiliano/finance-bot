@@ -742,16 +742,20 @@ const recordPhones = cron.schedule(
     timezone: "America/New_York",
   }
 );
-const clearCronHours = "0 0 */10 * *";
-const clearLogger = cron.schedule("0 0 */10 * *", async () => {
+// Cron job para limpiar logs - Ejecuta todos los domingos a las 00:00
+const clearCronHours = "0 0 * * 0"; // Cron expression: minuto hora dia mes dia-semana (0=domingo)
+const clearLogger = cron.schedule(clearCronHours, async () => {
   try {
-    logger.info(`Tarea de ejecución de limpieza de logs`);
+    logger.info(`[LIMPIEZA SEMANAL] Iniciando limpieza de logs`);
     await clearLogs();
+    logger.info(`[LIMPIEZA SEMANAL] Logs limpiados exitosamente`);
   } catch (err) {
     logger.error(
-      `Error en la tarea de ejecución de limpieza de logger: ${err}`
+      `[LIMPIEZA SEMANAL] Error en la tarea de limpieza de logs: ${err.message}`
     );
   }
+}, {
+  timezone: "America/Argentina/Buenos_Aires" // Ejecutar en horario de Argentina
 });
 
 module.exports = {

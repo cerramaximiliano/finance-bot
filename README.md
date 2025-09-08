@@ -177,13 +177,30 @@ curl "http://localhost:3000/test/test-market-message?type=close&symbols=5&send=t
 
 The application uses `node-cron` to schedule data fetching jobs. The following cron jobs are configured:
 
+### Market Data Jobs
+
 - **Open Market Data:**
-    - Schedule: Monday to Friday at 9:30 AM
+    - Schedule: Monday to Friday at 9:30 AM (EST)
     - Task: Fetch and save open market data
+    - Sends Telegram message with market opening information
 
 - **Close Market Data:**
-    - Schedule: Monday to Friday at 4:30 PM
+    - Schedule: Monday to Friday at 4:30 PM (EST)
     - Task: Fetch and save close market data
+    - Sends Telegram message with market closing information
+
+- **Gainers & Losers:**
+    - Schedule: Monday to Friday at 4:35 PM (EST)
+    - Task: Fetch top gainers and losers of the day
+    - Sends Telegram message with top 5 performers
+
+### Maintenance Jobs
+
+- **Log Cleaner:**
+    - Schedule: Every Sunday at 00:00 (Argentina Time)
+    - Task: Clean application logs from `server/logs/` directory
+    - Frequency: Weekly
+    - Purpose: Prevent log files from growing too large and consuming disk space
 
 ### Market Data Symbols
 
