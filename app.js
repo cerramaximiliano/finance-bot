@@ -10,21 +10,30 @@ const URL_DB = process.env.MONGO_URI;
 const cron = require("node-cron");
 const app = require("./server/server");
 const PORT = process.env.PORT || 3002;
+const {logger} = require("./server/utils/logger");
+
+logger.info(`Running on ${process.env.NODE_ENV} enviroment`);
 
 bot.on("polling_error", (err) => {
   logger.error(`Error Telegram Bot ${err}`)
-} );
-mongoose
-  .connect(URL_DB)
-  .then(() => logger.info("Conectado a MongoDB"))
-  .catch((err) => logger.error("Error al conectar a MongoDB", err));
-
-require("./server/tasks/cronJobs");
-const {logger} = require("./server/utils/logger");
-const { checkTaskSuccess } = require("./server/controllers/tasksControllers");
-logger.info(`Running on ${process.env.NODE_ENV} enviroment`);
-app.listen(PORT, () => {
-  logger.info(`Servidor ejecutándose en el puerto ${PORT}`);
 });
 
-checkTaskSuccess()
+// Conectar a MongoDB y luego iniciar los cron jobs
+mongoose
+  .connect(URL_DB)
+  .then(() => {
+    logger.info("Conectado a MongoDB");
+    
+    // Cargar cron jobs solo después de conectar a MongoDB
+    require("./server/tasks/cronJobs");
+    logger.info("Cron jobs iniciados");
+    
+    // Iniciar servidor
+    app.listen(PORT, () => {
+      logger.info(`Servidor ejecutándose en el puerto ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    logger.error("Error al conectar a MongoDB", err);
+    process.exit(1); // Salir si no se puede conectar a la BD
+  });

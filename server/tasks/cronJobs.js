@@ -73,14 +73,27 @@ function mapProperties(item) {
 
 function mergeArrays(array1, array2) {
   const map = new Map();
+  
+  // Asegurar que los parámetros son arrays
+  const arr1 = Array.isArray(array1) ? array1 : [];
+  const arr2 = Array.isArray(array2) ? array2 : [];
 
-  array1.forEach((item) => map.set(item.symbol, mapProperties(item)));
-  array2.forEach((item) => {
-    const mappedItem = mapProperties(item);
-    if (map.has(item.symbol)) {
-      map.set(item.symbol, { ...map.get(item.symbol), ...mappedItem });
-    } else {
-      map.set(item.symbol, mappedItem);
+  // Procesar primer array
+  arr1.forEach((item) => {
+    if (item && item.symbol) {
+      map.set(item.symbol, mapProperties(item));
+    }
+  });
+  
+  // Procesar segundo array
+  arr2.forEach((item) => {
+    if (item && item.symbol) {
+      const mappedItem = mapProperties(item);
+      if (map.has(item.symbol)) {
+        map.set(item.symbol, { ...map.get(item.symbol), ...mappedItem });
+      } else {
+        map.set(item.symbol, mappedItem);
+      }
     }
   });
 
@@ -353,22 +366,48 @@ const openMarketCron = cron.schedule(
           delayTime,
           3
         );
-        const formattedMarketData = formatMarketData(
-          openMarketData,
-          openSymbols,
-          "open"
-        );
+        
+        // Verificar si hay datos disponibles
+        let messageToSend = `*Informe apertura de mercado ${date}*\n\n`;
+        
+        if (openMarketData && openMarketData.length > 0) {
+          const formattedMarketData = formatMarketData(
+            openMarketData,
+            openSymbols,
+            "open"
+          );
+          
+          if (formattedMarketData && formattedMarketData.trim() !== "") {
+            messageToSend += formattedMarketData;
+            
+            // Log interno si no se obtuvieron todos los datos
+            if (openMarketData.length < openSymbols.length) {
+              const successRate = `${openMarketData.length}/${openSymbols.length}`;
+              logger.info(`Datos parciales: ${successRate} símbolos obtenidos`);
+            }
+          }
+        } else {
+          // Si no hay datos, no enviar mensaje
+          logger.error("No se obtuvieron datos de apertura de mercado - mensaje no enviado");
+          return;
+        }
+        
+        // Enviar mensaje solo si hay datos disponibles
         sendMessageToChatAndTopic(
           process.env.CHAT_ID,
           process.env.TOPIC_INFORMES,
-          `*Informe apertura de mercado ${date}*\n\n${formattedMarketData}`
+          messageToSend
         );
-        const savedData = await saveMarketData({
-          data: openMarketData,
-          time: "open",
-        });
-
-        logger.info("Datos de apertura de mercado guardados correctamente.");
+        
+        // Guardar solo si hay datos
+        if (openMarketData && openMarketData.length > 0) {
+          const savedData = await saveMarketData({
+            data: openMarketData,
+            time: "open",
+          });
+          logger.info("Datos de apertura de mercado guardados correctamente.");
+        }
+        
         await logTaskExecution(
           "openMarketDataCron",
           "success",
@@ -418,7 +457,16 @@ const closeMarketCron = cron.schedule(
               const results = await fetchStockPricesTwelveData();
               if (results.status === 200 && results.data.code !== 429) {
                 logger.info(`Data fetched successfully from TwelveData`);
-                array2 = Object.values(results.data);
+                // Verificar y procesar los datos correctamente
+                if (results.data && typeof results.data === 'object') {
+                  const dataValues = Object.values(results.data).filter(item => 
+                    item && typeof item === 'object' && item.symbol
+                  );
+                  array2 = dataValues;
+                  logger.info(`TwelveData: ${array2.length} valid symbols processed`);
+                } else {
+                  array2 = [];
+                }
                 break; // Salir del bucle si la petición fue exitosa
               } else if (results.data.code === 429) {
                 logger.info(`Rate limit reached, delaying for 1 minute`);
@@ -437,43 +485,83 @@ const closeMarketCron = cron.schedule(
 
           try {
             const results = await fetchStockPricesRealTimeData();
-            if (results.data && results.data.status === "OK") {
-              array1 = results.data.data;
-              logger.info(`Data fetched successfully from RealTimeData`);
+            if (results.data && results.data.status === "OK" && results.data.data) {
+              // RealTimeData puede devolver un objeto único o un array
+              if (Array.isArray(results.data.data)) {
+                array1 = results.data.data;
+                logger.info(`Data fetched successfully from RealTimeData: ${array1.length} symbols (array)`);
+              } else if (typeof results.data.data === 'object') {
+                // Si es un objeto único, convertirlo a array
+                array1 = [results.data.data];
+                logger.info(`Data fetched successfully from RealTimeData: 1 symbol (single object)`);
+              } else {
+                array1 = [];
+                logger.error(
+                  `Unexpected RealTimeData type: ${typeof results.data.data}`
+                );
+              }
             } else {
               array1 = [];
               logger.error(
-                `Unexpected response from RealTimeData: ${results.data}`
+                `RealTimeData error response: ${JSON.stringify(results.data?.status)}`
               );
             }
           } catch (err) {
             logger.error(`Error fetching data from RealTimeData: ${err}`);
+            array1 = [];
           }
+          
+          // Asegurar que ambos son arrays antes del merge
+          if (!Array.isArray(array1)) array1 = [];
+          if (!Array.isArray(array2)) array2 = [];
 
           try {
             logger.info(`Merging arrays`);
             const mergedArray = mergeArrays(array2, array1);
             logger.info(`Merged array: ${JSON.stringify(mergedArray)}`);
 
-            logger.info(`Formatting market data`);
-            const formattedMarketData = formatMarketData(
-              mergedArray,
-              closeSymbols,
-              "close"
-            );
-            logger.info(`Formatted market data: ${formattedMarketData}`);
+            // Verificar si hay datos disponibles
+            let messageToSend = `*Informe de cierre de mercado ${date}*\n\n`;
+            
+            if (mergedArray && mergedArray.length > 0) {
+              logger.info(`Formatting market data`);
+              const formattedMarketData = formatMarketData(
+                mergedArray,
+                closeSymbols,
+                "close"
+              );
+              logger.info(`Formatted market data: ${formattedMarketData}`);
+              
+              if (formattedMarketData && formattedMarketData.trim() !== "") {
+                messageToSend += formattedMarketData;
+                
+                // Log interno si no se obtuvieron todos los datos
+                if (mergedArray.length < closeSymbols.length) {
+                  const successRate = `${mergedArray.length}/${closeSymbols.length}`;
+                  logger.info(`Datos parciales: ${successRate} símbolos obtenidos`);
+                }
+              }
+            } else {
+              // Si no hay datos, no enviar mensaje
+              logger.error("No se obtuvieron datos de cierre de mercado - mensaje no enviado");
+              return;
+            }
 
             logger.info(`Sending market report to chat and topic`);
             await sendMessageToChatAndTopic(
               process.env.CHAT_ID,
               process.env.TOPIC_INFORMES,
-              `*Informe de cierre de mercado ${date}*\n\n${formattedMarketData}`
+              messageToSend
             );
             logger.info(`Market report sent successfully.`);
 
-            logger.info(`Saving market data`);
-            await saveMarketData({ data: mergedArray, time: "close" });
-            logger.info("Datos de cierre de mercado guardados correctamente.");
+            // Guardar solo si hay datos
+            if (mergedArray && mergedArray.length > 0) {
+              logger.info(`Saving market data`);
+              await saveMarketData({ data: mergedArray, time: "close" });
+              logger.info("Datos de cierre de mercado guardados correctamente.");
+            }
+            
             await logTaskExecution(
               "closeMarketDataCron",
               "success",

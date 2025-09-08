@@ -79,6 +79,8 @@ pm2 start ecosystem.config.js
 
 The application provides several endpoints for fetching financial data. Below are some examples:
 
+### Production Endpoints
+
 - **Fetch Economic Calendar:**
     ```http
     GET /api/economic-calendar
@@ -88,6 +90,88 @@ The application provides several endpoints for fetching financial data. Below ar
     ```http
     GET /api/earnings-calendar
     ```
+
+- **Fetch Real-time Stocks:**
+    ```http
+    GET /api/realtime-stocks
+    ```
+
+- **Fetch Market Status:**
+    ```http
+    GET /api/market
+    ```
+
+- **Fetch Gainers or Losers:**
+    ```http
+    GET /api/gainersorloser
+    ```
+
+### Test Endpoints
+
+These endpoints are designed for testing market messages without waiting for cron jobs:
+
+- **Test Open Market Message (Real Data):**
+    ```http
+    GET /test/test-open-market
+    GET /test/test-open-market?send=true  # Sends message to Telegram
+    ```
+    - Fetches real data from APIs
+    - Shows preview of the message that would be sent
+    - Use `?send=true` to actually send the message to Telegram
+    - Returns JSON with success status, data count, and message preview
+
+- **Test Close Market Message (Real Data):**
+    ```http
+    GET /test/test-close-market
+    GET /test/test-close-market?send=true  # Sends message to Telegram
+    ```
+    - Fetches real data from TwelveData and RealTimeData APIs
+    - Shows preview of the close market message
+    - Use `?send=true` to actually send the message to Telegram
+    - Returns JSON with success status, data count, and message preview
+
+- **Test Market Message (Simulated Data):**
+    ```http
+    GET /test/test-market-message
+    GET /test/test-market-message?type=close&symbols=5
+    GET /test/test-market-message?type=open&symbols=2&send=true
+    ```
+    - Uses simulated data (does not call external APIs)
+    - Parameters:
+        - `type`: 'open' or 'close' (default: 'open')
+        - `symbols`: number of symbols to simulate (1-5, default: 3)
+        - `send`: 'true' to send message to Telegram (default: false)
+    - Useful for testing message formatting without API calls
+    - Returns JSON with preview and simulation details
+
+#### Example Usage:
+
+```bash
+# Test with real data (preview only)
+curl http://localhost:3000/test/test-open-market
+
+# Test with real data and send to Telegram
+curl http://localhost:3000/test/test-open-market?send=true
+
+# Test with simulated data
+curl http://localhost:3000/test/test-market-message?symbols=3
+
+# Test close market with simulated data and send
+curl "http://localhost:3000/test/test-market-message?type=close&symbols=5&send=true"
+```
+
+#### Response Format:
+
+```json
+{
+  "success": true,
+  "message": "Test completed",
+  "dataCount": 5,
+  "totalSymbols": 12,
+  "preview": "*Informe apertura de mercado 06/09/2025*\n\n...",
+  "sent": false
+}
+```
 
 ## Cron Jobs
 
