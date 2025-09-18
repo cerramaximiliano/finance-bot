@@ -141,7 +141,10 @@ const fecthGainersOrLosers = async (
   gainersOrLosers = "ta_topgainers",
   order = "change"
 ) => {
-  const apiKey = rotateApiKey("API3", 100);
+  // Usar RAPID_API_KEY_IUBILARE en lugar del sistema de rotación
+  const apiKey = rapidApiKeyIubilare || rapidApiKey; // Fallback a rapidApiKey si no existe
+  const apiKeyName = rapidApiKeyIubilare ? 'RAPID_API_KEY_IUBILARE' : 'RAPID_API_KEY';
+
   const options = {
     method: "GET",
     url: "https://finviz-screener.p.rapidapi.com/table",
@@ -159,12 +162,10 @@ const fecthGainersOrLosers = async (
 
   try {
     const response = await axios.request(options);
-    const usageAPI =
-      response.headers["x-ratelimit-requests-limit"] -
-      response.headers["x-ratelimit-requests-remaining"];
-    if (typeof usageAPI === "number") {
-      updateApiUsageCount("API3_USAGE_COUNT", usageAPI);
-    }
+    const remaining = response.headers["x-ratelimit-requests-remaining"];
+    const limit = response.headers["x-ratelimit-requests-limit"];
+    logger.info(`[Finviz ${gainersOrLosers}] API:${apiKeyName} - Remaining: ${remaining}/${limit}`);
+
     return response;
   } catch (err) {
     console.log(err);
@@ -172,7 +173,7 @@ const fecthGainersOrLosers = async (
     throw new Error(
       `Error fetching top gainers or losers data: ${err.message}`
     );
-  } 
+  }
 };
 
 // Seeking Alpha
